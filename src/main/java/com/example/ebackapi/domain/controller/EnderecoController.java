@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,10 @@ public class EnderecoController {
 
     @Autowired
     private EnderecoService enderecoService;
+
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     // Listar todos os endereços
     @GetMapping
@@ -37,17 +42,39 @@ public class EnderecoController {
         return endereco.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Criar um novo endereço
     @PostMapping
     @Operation(summary = "Criar um novo endereço")
-    public ResponseEntity<Endereco> criar(@RequestBody Endereco endereco) {
+    public ResponseEntity<?> criar(@RequestBody Endereco endereco) {
         try {
+            // Verifica se o CEP existe na API
+            if (!verificarCepExistente(endereco.getCep())) {
+                // Se o CEP não for encontrado, retorna um erro de CEP inválido com uma mensagem
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("CEP inválido"); // Retorna a mensagem "CEP inválido"
+            }
+            
+            // Se o CEP for válido, salva o endereço no banco de dados
             Endereco novoEndereco = enderecoService.salvar(endereco);
+            
+            // Retorna a resposta com o status 201 (Criado) e o novo endereço
             return ResponseEntity.status(HttpStatus.CREATED).body(novoEndereco);
         } catch (Exception e) {
             // Loga o erro e retorna um erro genérico para o cliente
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno do servidor");
+        }
+    }
+    
+    // Método para verificar se o CEP existe na API
+    private boolean verificarCepExistente(String cep) {
+        String url = "https://brasilapi.com.br/api/cep/v1/" + cep;
+        try {
+            // Faz a requisição à API BrasilAPI para verificar a existência do CEP
+            restTemplate.getForObject(url, String.class); // Se o CEP for válido, não lança exceção
+            return true; // Se o CEP existir, retorna true
+        } catch (Exception e) {
+            // Se houver erro (CEP não encontrado), retorna false
+            return false;
         }
     }
 

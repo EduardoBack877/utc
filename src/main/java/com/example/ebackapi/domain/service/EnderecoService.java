@@ -4,6 +4,7 @@ import com.example.ebackapi.domain.model.Endereco;
 import com.example.ebackapi.domain.repository.EnderecoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,10 @@ public class EnderecoService {
 
     @Autowired
     private EnderecoRepository enderecoRepository;
+    
+    private static final String URL_API_CEP = "https://brasilapi.com.br/api/cep/v1/";
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     // Listar todos os endereços
     public List<Endereco> listarTodos() {
@@ -25,15 +30,30 @@ public class EnderecoService {
         return enderecoRepository.findById(id);
     }
 
-    // Salvar um novo endereço ou atualizar
-    public Endereco salvar(Endereco endereco) {
-        // Não há necessidade de gerar UUID manualmente, já que o JPA cuida disso
-        // Remover essa lógica de geração de UUID manualmente, pois @GeneratedValue cuida disso
-
-        // Se o ID já existe, o Hibernate irá tratar como uma atualização.
-        // Se o ID não existe, será tratada como uma inserção nova.
-        return enderecoRepository.save(endereco);
+// Salvar um novo endereço ou atualizar
+public Endereco salvar(Endereco endereco) {
+    // Verificar se o CEP é válido na API
+    if (!verificarCepExistente(endereco.getCep())) {
+        throw new IllegalArgumentException("CEP inválido");
     }
+
+    // Salvar o endereço no banco de dados. O JPA irá cuidar de identificar se é uma nova inserção ou atualização.
+    return enderecoRepository.save(endereco);
+}
+
+  // Verificar se o CEP é válido na API
+  public boolean verificarCepExistente(String cep) {
+    String url = URL_API_CEP + cep;
+
+    try {
+        // Faz a requisição à API BrasilAPI
+        restTemplate.getForObject(url, String.class); // Se o CEP for válido, não lança exceção
+        return true; // Se a requisição for bem-sucedida, o CEP existe
+    } catch (Exception e) {
+        // Se houver erro (CEP não encontrado ou outra falha), retorna false
+        return false;
+    }
+}
 
     // Deletar um endereço
     public void deletar(UUID id) {
