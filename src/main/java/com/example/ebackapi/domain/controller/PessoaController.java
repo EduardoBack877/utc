@@ -60,7 +60,7 @@ public ResponseEntity<Pessoa> salvar(@Valid @RequestBody Pessoa pessoa, @Request
         return ResponseEntity.ok(result);
     }
 
-    @PutMapping("/{codigo}")
+   /*  @PutMapping("/{codigo}")
 public ResponseEntity<Pessoa> atualizar(@PathVariable int codigo, @RequestBody Pessoa pessoaAtualizada) {
     Optional<Pessoa> pessoaExistente = pessoaService.buscarPorCodigo(codigo);
     
@@ -78,5 +78,7 @@ public ResponseEntity<Pessoa> atualizar(@PathVariable int codigo, @RequestBody P
     }
     
     return ResponseEntity.notFound().build();
-}
+}*/
+
+
 }
