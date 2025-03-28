@@ -71,6 +71,14 @@ public class FardoController {
         return ResponseEntity.notFound().build();
     }
 
+    @PostMapping
+    public ResponseEntity<Fardo> salvar(@Valid @RequestBody Fardo fardo) {
+        Fardo novoFardo = fardoService.salvar(fardo);
+        URI uri = URI.create("/fardos/" + novoFardo.getFardoUID());
+        return ResponseEntity.created(uri).body(novoFardo);
+    }
+
+
     @PutMapping("/{numero}")
     public ResponseEntity<Fardo> atualizar(@PathVariable int numero, @RequestBody Fardo fardoAtualizado) {
         Optional<Fardo> fardoExistente = fardoService.buscarPorNumero(numero);

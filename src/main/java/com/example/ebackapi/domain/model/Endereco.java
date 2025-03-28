@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.util.UUID;
 
+
 @Entity
 @Table(name = "endereco")
 @Data
@@ -12,9 +13,9 @@ import java.util.UUID;
 public class Endereco {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)  // Geração automática do UUID
-    @Column(nullable = false, unique = true)
-    private UUID enderecoUID;  // Deixe o UUID ser gerenciado pelo JPA automaticamente
+    @GeneratedValue(strategy = GenerationType.AUTO)  
+    @Column(nullable = false, unique = true, columnDefinition = "CHAR(36)")  
+    private UUID enderecoUID;  
 
     @Column(nullable = false, length = 255)
     private String descricao;
